@@ -1,0 +1,5 @@
+{
+  "name": "Fire Department Unit Management",
+  "description": "A web application for managing fire department units and personnel, inspired by a real-world system. It allows for viewing unit status, assigning officers, and managing personnel assignments across different stations and zones.",
+  "requestFramePermissions": []
+}
