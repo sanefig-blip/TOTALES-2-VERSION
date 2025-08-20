@@ -1,8 +1,8 @@
 
 import React, { useState, useMemo } from 'react';
-import type { Unit, Personnel } from '../../types';
-import { Modal } from './Modal';
-import { PlusIcon } from '../icons/Icons';
+import type { Unit, Personnel } from '../../types.ts';
+import { Modal } from './Modal.tsx';
+import { PlusIcon } from '../icons/Icons.tsx';
 
 interface AssignOfficerModalProps {
     unit: Unit;

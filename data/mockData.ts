@@ -1,6 +1,5 @@
-
-import type { Zone, Personnel } from '../types';
-import { UnitStatus } from '../types';
+import type { Zone, Personnel } from '../types.ts';
+import { UnitStatus } from '../types.ts';
 
 export const PERSONNEL_DATA: Personnel[] = [
     { lp: '71.820', rank: 'Capitan', lastName: 'Schreiner', firstName: 'Maximiliano G.' },

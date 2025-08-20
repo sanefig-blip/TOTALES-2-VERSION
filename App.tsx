@@ -1,12 +1,12 @@
 
 import React, { useState, useCallback } from 'react';
-import { Header } from './components/Header';
-import { StationSection } from './components/StationSection';
-import { AssignOfficerModal } from './components/modals/AssignOfficerModal';
-import { UpdateStatusModal } from './components/modals/UpdateStatusModal';
-import { UnitNomenclatureModal } from './components/modals/UnitNomenclatureModal';
-import type { Zone, Unit, UnitStatus, Personnel, ModalType } from './types';
-import { ZONES_DATA, PERSONNEL_DATA } from './data/mockData';
+import { Header } from './components/Header.tsx';
+import { StationSection } from './components/StationSection.tsx';
+import { AssignOfficerModal } from './components/modals/AssignOfficerModal.tsx';
+import { UpdateStatusModal } from './components/modals/UpdateStatusModal.tsx';
+import { UnitNomenclatureModal } from './components/modals/UnitNomenclatureModal.tsx';
+import type { Zone, Unit, UnitStatus, Personnel, ModalType } from './types.ts';
+import { ZONES_DATA, PERSONNEL_DATA } from './data/mockData.ts';
 
 const App: React.FC = () => {
     const [zones, setZones] = useState<Zone[]>(ZONES_DATA);

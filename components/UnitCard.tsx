@@ -1,7 +1,7 @@
 import React from 'react';
-import type { Unit } from '../types';
-import { UnitStatus } from '../types';
-import { CogIcon, PlusIcon, EditIcon, UserIcon, UsersIcon } from './icons/Icons';
+import type { Unit } from '../types.ts';
+import { UnitStatus } from '../types.ts';
+import { CogIcon, PlusIcon, EditIcon, UserIcon, UsersIcon } from './icons/Icons.tsx';
 
 interface UnitCardProps {
     unit: Unit;

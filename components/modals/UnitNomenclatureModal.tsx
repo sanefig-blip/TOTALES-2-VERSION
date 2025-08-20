@@ -1,8 +1,8 @@
 
 import React, { useState, useMemo } from 'react';
-import type { Zone, Unit } from '../../types';
-import { Modal } from './Modal';
-import { SearchIcon, PlusIcon, EditIcon, TrashIcon } from '../icons/Icons';
+import type { Zone, Unit } from '../../types.ts';
+import { Modal } from './Modal.tsx';
+import { SearchIcon, PlusIcon, EditIcon, TrashIcon } from '../icons/Icons.tsx';
 
 interface UnitNomenclatureModalProps {
     isOpen: boolean;

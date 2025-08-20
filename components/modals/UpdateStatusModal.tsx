@@ -1,8 +1,8 @@
 
 import React, { useState } from 'react';
-import type { Unit } from '../../types';
-import { UnitStatus } from '../../types';
-import { Modal } from './Modal';
+import type { Unit } from '../../types.ts';
+import { UnitStatus } from '../../types.ts';
+import { Modal } from './Modal.tsx';
 
 interface UpdateStatusModalProps {
     unit: Unit;
