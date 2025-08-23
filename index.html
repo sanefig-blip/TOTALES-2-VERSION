@@ -33,6 +33,7 @@ import ReactDOM from 'react-dom/client';
 // --- From types.ts ---
 const UnitStatus = {
     InService: 'In Service',
+    InServiceActive: 'In Service Active',
     OutOfService: 'Out of Service',
     Reserve: 'Reserve',
     OnLoan: 'On Loan',
@@ -104,6 +105,11 @@ const SearchIcon = ({ className }) => (
 const TrashIcon = ({ className }) => (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" >
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+    </svg>
+);
+const CheckIcon = ({ className }) => (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
     </svg>
 );
 
@@ -184,7 +190,7 @@ const ZONES_DATA = [
                     { id: 'BICICLETA-276', type: 'Bicicleta', status: UnitStatus.InService, officerInCharge: null, personnelCount: null },
                     { id: 'BICICLETA-277', type: 'Bicicleta', status: UnitStatus.InService, officerInCharge: null, personnelCount: null },
                     { id: 'POLARIS-6441', type: 'Cuatriciclo', status: UnitStatus.Reserve, officerInCharge: null, personnelCount: null },
-                    { id: 'BICICLETA-275', type: 'Bicicleta', status: UnitStatus.OutOfService, officerInCharge: null, personnelCount: null },
+                    { id: 'BICICLETA-275', type: 'Bicicleta', status: UnitStatus.OutOfService, officerInCharge: null, personnelCount: null, statusReason: 'Rueda pinchada' },
                     { id: 'YAM-3981', type: 'Cuatriciclo', status: UnitStatus.OutOfService, officerInCharge: null, personnelCount: null },
                     { id: 'POLARIS-3236', type: 'Cuatriciclo', status: UnitStatus.OutOfService, officerInCharge: null, personnelCount: null },
                 ]
@@ -200,7 +206,7 @@ const ZONES_DATA = [
                     { id: 'BER-1168', type: 'BERLINGO', status: UnitStatus.OnLoan, officerInCharge: null, personnelCount: null },
                     { id: 'MB-2672', type: 'Autobomba', status: UnitStatus.OnLoan, officerInCharge: null, personnelCount: null },
                     { id: 'ZONDA-2656', type: 'Autobomba Liviana', status: UnitStatus.OutOfService, officerInCharge: null, personnelCount: null },
-                    { id: 'MB-2651', type: 'Autobomba', status: UnitStatus.OutOfService, officerInCharge: null, personnelCount: null },
+                    { id: 'MB-2651', type: 'Autobomba', status: UnitStatus.OutOfService, officerInCharge: null, personnelCount: null, statusReason: 'Problema de motor' },
                     { id: 'CAT-DISEL', type: 'Iluminación', status: UnitStatus.OutOfService, officerInCharge: null, personnelCount: null },
                 ]
             },
@@ -285,6 +291,11 @@ const ZONES_DATA = [
                     { id: 'ZFD-2658', type: 'Autobomba Liviana', status: UnitStatus.InService, officerInCharge: { rank: 'Subteniente', name: 'Solari', lp: 'placeholder-lp-13' }, personnelCount: 3 },
                 ]
             },
+             {
+                id: 'destacamento-palermo',
+                name: 'DESTACAMENTO PALERMO',
+                units: []
+            },
             {
                 id: 'estacion-v-cte-gral-a-vazquez',
                 name: 'ESTACIÓN V CTE. GRAL. A. VAZQUEZ',
@@ -338,12 +349,6 @@ const ZONES_DATA = [
                     { id: 'POLARIS-3237', type: 'Sexticiclo', status: UnitStatus.OutOfService, officerInCharge: null, personnelCount: null },
                 ]
             },
-        ]
-    },
-    {
-        id: 'zona-iii',
-        name: 'ZONA III',
-        stations: [
             {
                 id: 'destacamento-chacarita',
                 name: 'DESTACAMENTO CHACARITA',
@@ -352,6 +357,12 @@ const ZONES_DATA = [
                     { id: 'IV-2637', type: 'Autobomba', status: UnitStatus.InService, officerInCharge: { rank: 'Teniente', name: 'Farias', lp: 'placeholder-lp-23' }, personnelCount: 7 },
                 ]
             },
+        ]
+    },
+    {
+        id: 'zona-iii',
+        name: 'ZONA III',
+        stations: [
             {
                 id: 'estacion-ix-versailles',
                 name: 'ESTACIÓN IX VERSAILLES',
@@ -568,7 +579,7 @@ const Modal = ({ isOpen, onClose, title, children, size = '2xl' }) => {
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-            <div className={`bg-gray-800 text-gray-200 rounded-lg shadow-xl w-full ${sizeClasses[size]} flex flex-col max-h-[90vh]`}>
+            <div className={`bg-gray-800 text-gray-200 rounded-lg shadow-xl w-full ${sizeClasses[size]} flex flex-col`}>
                 <header className="flex items-center justify-between p-4 border-b border-gray-700">
                     <h2 className="text-lg font-semibold">{title}</h2>
                     <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-700">
@@ -583,168 +594,125 @@ const Modal = ({ isOpen, onClose, title, children, size = '2xl' }) => {
     );
 };
 
-// --- From components/modals/AssignOfficerModal.tsx ---
-const AssignOfficerModal = ({ unit, personnelList, isOpen, onClose, onSave }) => {
-    const [searchTerm, setSearchTerm] = useState('');
-    const [selectedOfficer, setSelectedOfficer] = useState(null);
-    const [personnelCount, setPersonnelCount] = useState(unit.personnelCount?.toString() || '');
 
-    const filteredPersonnel = useMemo(() => {
-        if (!searchTerm) return [];
-        return personnelList.filter(p =>
-            p.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            p.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            p.lp.includes(searchTerm)
-        ).slice(0, 5);
-    }, [searchTerm, personnelList]);
+// --- From components/modals/AddEditUnitModal.tsx ---
+const AddEditUnitModal = ({ isOpen, onClose, onSave, unitData, allZones }) => {
+    const isEditMode = unitData?.mode === 'edit';
+    const initialUnit = unitData?.unit;
 
-    const handleSave = () => {
-        if (selectedOfficer && personnelCount) {
-            onSave(unit.id, selectedOfficer, parseInt(personnelCount, 10));
-        }
-    };
-    
-    const handleSelectOfficer = (officer) => {
-        setSelectedOfficer(officer);
-        setSearchTerm(`${officer.lastName.toUpperCase()}, ${officer.firstName}`);
-    }
+    const [formData, setFormData] = useState({
+        id: '',
+        name: '',
+        internalNumber: '',
+        type: '',
+        zoneId: '',
+        stationId: ''
+    });
 
-    return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Asignar Oficial">
-            <div className="space-y-6">
-                <p className="font-semibold">Unidad: <span className="font-bold text-yellow-400">{unit.id}</span></p>
+    const [availableStations, setAvailableStations] = useState([]);
 
-                <div className="bg-gray-700 p-4 rounded-md">
-                    <label htmlFor="search-officer" className="block text-sm font-medium text-blue-300 mb-2">Oficial a Cargo</label>
-                    <p className="text-xs text-gray-400 mb-2">Buscar Oficial (por Nombre, Apellido o LP)</p>
-                    <input
-                        id="search-officer"
-                        type="text"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full bg-gray-800 border border-gray-600 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                    {searchTerm && filteredPersonnel.length > 0 && (
-                        <ul className="mt-2 bg-gray-900 border border-gray-600 rounded-md">
-                            {filteredPersonnel.map(p => (
-                                <li
-                                    key={p.lp}
-                                    onClick={() => handleSelectOfficer(p)}
-                                    className="p-2 hover:bg-gray-700 cursor-pointer border-b border-gray-700 last:border-b-0"
-                                >
-                                    <p className="font-bold">{p.lastName.toUpperCase()}, {p.firstName}</p>
-                                    <p className="text-xs text-gray-400">Capitan - LP: {p.lp}</p>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                </div>
-
-                <div className="bg-gray-700 p-4 rounded-md">
-                    <label htmlFor="personnel-count" className="block text-sm font-medium text-blue-300 mb-2">Dotación de la Unidad</label>
-                    <p className="text-xs text-gray-400 mb-2">Cantidad Total de Personal</p>
-                    <input
-                        id="personnel-count"
-                        type="number"
-                        value={personnelCount}
-                        onChange={(e) => setPersonnelCount(e.target.value)}
-                        className="w-full bg-gray-800 border border-gray-600 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                </div>
+    useEffect(() => {
+        if (isOpen) {
+            if (isEditMode && initialUnit) {
+                setFormData({
+                    id: initialUnit.id || '',
+                    name: initialUnit.id || '', // Assuming name is same as id for now
+                    internalNumber: initialUnit.internalNumber || '',
+                    type: initialUnit.type || '',
+                    zoneId: initialUnit.zoneId || '',
+                    stationId: initialUnit.stationId || ''
+                });
                 
-                 <div className="bg-gray-700 p-4 rounded-md">
-                    <label htmlFor="add-personnel" className="block text-sm font-medium text-blue-300 mb-2">Agregar Personal a la Lista (Opcional)</label>
-                    <div className="flex">
-                        <input
-                            id="add-personnel"
-                            type="text"
-                            placeholder="Nombre y Apellido"
-                            className="w-full bg-gray-800 border border-gray-600 rounded-l-md p-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                        <button className="bg-blue-600 p-2 rounded-r-md hover:bg-blue-700">
-                            <PlusIcon className="w-6 h-6 text-white"/>
-                        </button>
-                    </div>
-                </div>
+                if (initialUnit.zoneId) {
+                    const selectedZone = allZones.find(z => z.id === initialUnit.zoneId);
+                    if (selectedZone) {
+                        setAvailableStations(selectedZone.stations);
+                    }
+                }
+            } else {
+                // Reset for "add" mode
+                setFormData({ id: '', name: '', internalNumber: '', type: '', zoneId: '', stationId: '' });
+                setAvailableStations([]);
+            }
+        }
+    }, [isOpen, isEditMode, initialUnit, allZones]);
 
-                <footer className="flex justify-end space-x-4 pt-4">
-                    <button onClick={onClose} className="px-4 py-2 bg-gray-600 rounded-md hover:bg-gray-500">Cancelar</button>
-                    <button onClick={handleSave} disabled={!selectedOfficer || !personnelCount} className="px-4 py-2 bg-red-600 rounded-md hover:bg-red-700 disabled:bg-gray-500 disabled:cursor-not-allowed">Guardar Cambios</button>
-                </footer>
-            </div>
-        </Modal>
-    );
-};
+    const handleZoneChange = (e) => {
+        const newZoneId = e.target.value;
+        setFormData(prev => ({ ...prev, zoneId: newZoneId, stationId: '' }));
+        const selectedZone = allZones.find(z => z.id === newZoneId);
+        setAvailableStations(selectedZone ? selectedZone.stations : []);
+    };
 
-// --- From components/modals/UpdateStatusModal.tsx ---
-const UpdateStatusModal = ({ unit, isOpen, onClose, onSave }) => {
-    const [selectedStatus, setSelectedStatus] = useState(unit.status);
-    const [reason, setReason] = useState('');
-    
-    const statusOptions = [
-        { label: 'Unidad Integrando Fuerza o Servicio', value: UnitStatus.InService, color: 'purple-500' },
-        { label: 'Para Servicio', value: UnitStatus.InService, color: 'gray-400' },
-        { label: 'Reserva', value: UnitStatus.Reserve, color: 'green-500' },
-        { label: 'Alternativa', value: UnitStatus.Alternative, color: 'yellow-500' },
-        { label: 'A Prestamo', value: UnitStatus.OnLoan, color: 'gray-400' },
-        { label: 'Fuera de Servicio', value: UnitStatus.OutOfService, color: 'red-500' },
-    ];
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
 
-    const handleSave = () => {
-        onSave(unit.id, selectedStatus, reason);
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        onSave(formData, initialUnit); // Pass original unit for edits
+        onClose();
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Actualizar Estado">
-            <div className="space-y-6">
-                <p className="font-semibold">Unidad: <span className="font-bold text-yellow-400">{unit.id}</span></p>
+        <Modal isOpen={isOpen} onClose={onClose} title={isEditMode ? "Editar Unidad" : "Agregar Nueva Unidad"} size="2xl">
+            <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                    <label className="block text-sm font-medium text-blue-300 mb-2">Seleccionar Nuevo Estado</label>
-                    <div className="space-y-2">
-                        {statusOptions.map(option => (
-                            <button
-                                key={option.value + option.label}
-                                onClick={() => setSelectedStatus(option.value)}
-                                className={`w-full text-left p-3 rounded-md flex items-center transition-all duration-200 ${selectedStatus === option.value ? `ring-2 ring-offset-2 ring-offset-gray-800 ring-${option.color}` : 'bg-gray-700 hover:bg-gray-600'}`}
-                            >
-                                <span className={`w-4 h-4 rounded-full mr-3 bg-${option.color}`}></span>
-                                {option.label}
-                            </button>
-                        ))}
+                    <label htmlFor="id" className="block text-sm font-medium text-blue-300 mb-1">ID de Unidad (Único) *</label>
+                    <input id="id" name="id" type="text" value={formData.id} onChange={handleChange} required disabled={isEditMode} className="w-full bg-gray-900 border border-gray-600 rounded-md p-2 focus:ring-red-500 focus:border-red-500 disabled:opacity-50" />
+                </div>
+                <div>
+                    <label htmlFor="name" className="block text-sm font-medium text-blue-300 mb-1">Nombre de Unidad</label>
+                    <input id="name" name="name" type="text" placeholder="Ej: IV-2650" value={formData.name} onChange={handleChange} className="w-full bg-gray-900 border border-gray-600 rounded-md p-2 focus:ring-red-500 focus:border-red-500" />
+                </div>
+                <div>
+                    <label htmlFor="internalNumber" className="block text-sm font-medium text-blue-300 mb-1">Número de Interno</label>
+                    <input id="internalNumber" name="internalNumber" type="text" placeholder="Ej: 351" value={formData.internalNumber} onChange={handleChange} className="w-full bg-gray-900 border border-gray-600 rounded-md p-2 focus:ring-red-500 focus:border-red-500" />
+                </div>
+                <div>
+                    <label htmlFor="type" className="block text-sm font-medium text-blue-300 mb-1">Tipo de Unidad</label>
+                    <input id="type" name="type" type="text" placeholder="Ej: Autobomba, Cisterna" value={formData.type} onChange={handleChange} required className="w-full bg-gray-900 border border-gray-600 rounded-md p-2 focus:ring-red-500 focus:border-red-500" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label htmlFor="zoneId" className="block text-sm font-medium text-blue-300 mb-1">Zona *</label>
+                        <select id="zoneId" name="zoneId" value={formData.zoneId} onChange={handleZoneChange} required className="w-full bg-gray-900 border border-gray-600 rounded-md p-2 focus:ring-red-500 focus:border-red-500">
+                            <option value="">Seleccione una zona...</option>
+                            {allZones.map(zone => <option key={zone.id} value={zone.id}>{zone.name}</option>)}
+                        </select>
+                    </div>
+                    <div>
+                        <label htmlFor="stationId" className="block text-sm font-medium text-blue-300 mb-1">Estación / Destacamento *</label>
+                        <select id="stationId" name="stationId" value={formData.stationId} onChange={handleChange} required disabled={!formData.zoneId} className="w-full bg-gray-900 border border-gray-600 rounded-md p-2 focus:ring-red-500 focus:border-red-500 disabled:opacity-50">
+                            <option value="">Seleccione una estación...</option>
+                            {availableStations.map(station => <option key={station.id} value={station.id}>{station.name}</option>)}
+                        </select>
                     </div>
                 </div>
-                {selectedStatus === UnitStatus.OutOfService && (
-                     <div className="bg-gray-700 p-4 rounded-md">
-                        <label htmlFor="reason" className="block text-sm font-medium text-blue-300 mb-2">Motivo (Opcional)</label>
-                        <input
-                            id="reason"
-                            type="text"
-                            value={reason}
-                            onChange={(e) => setReason(e.target.value)}
-                            placeholder="Ej. Falta de personal, Problema mecánico"
-                            className="w-full bg-gray-800 border border-gray-600 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                    </div>
-                )}
-                <footer className="flex justify-end space-x-4 pt-4">
-                    <button onClick={onClose} className="px-4 py-2 bg-gray-600 rounded-md hover:bg-gray-500">Cancelar</button>
-                    <button onClick={handleSave} className="px-4 py-2 bg-red-600 rounded-md hover:bg-red-700">Guardar Cambios</button>
+                <footer className="flex justify-end space-x-4 pt-4 border-t border-gray-700">
+                    <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-600 rounded-md hover:bg-gray-500">Cancelar</button>
+                    <button type="submit" className="px-4 py-2 bg-red-600 rounded-md hover:bg-red-700">Guardar</button>
                 </footer>
-            </div>
+            </form>
         </Modal>
     );
 };
+
 
 // --- From components/modals/UnitNomenclatureModal.tsx ---
-const UnitNomenclatureModal = ({ isOpen, onClose, zones }) => {
+const UnitNomenclatureModal = ({ isOpen, onClose, zones, onOpenAdd, onOpenEdit, onDelete }) => {
     const [searchTerm, setSearchTerm] = useState('');
+
     const allUnits = useMemo(() => {
         return zones.flatMap(zone =>
             zone.stations.flatMap(station =>
                 station.units.map(unit => ({
                     ...unit,
                     stationName: station.name,
+                    stationId: station.id,
                     zoneName: zone.name,
+                    zoneId: zone.id
                 }))
             )
         );
@@ -776,7 +744,7 @@ const UnitNomenclatureModal = ({ isOpen, onClose, zones }) => {
                         />
                         <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     </div>
-                    <button className="flex items-center px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-700">
+                    <button onClick={onOpenAdd} className="flex items-center px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-700">
                         <PlusIcon className="w-5 h-5 mr-2" />
                         Agregar Unidad
                     </button>
@@ -799,13 +767,13 @@ const UnitNomenclatureModal = ({ isOpen, onClose, zones }) => {
                                     <th scope="row" className="px-6 py-4 font-medium text-white whitespace-nowrap">
                                         {unit.id}
                                     </th>
-                                    <td className="px-6 py-4">-</td>
+                                    <td className="px-6 py-4">{unit.internalNumber || '-'}</td>
                                     <td className="px-6 py-4">{unit.type}</td>
                                     <td className="px-6 py-4">{unit.stationName} <br /> <span className="text-xs text-gray-500">{unit.zoneName}</span></td>
                                     <td className="px-6 py-4">
                                         <div className="flex space-x-3">
-                                            <button className="text-blue-400 hover:text-blue-300"><EditIcon className="w-5 h-5"/></button>
-                                            <button className="text-red-400 hover:text-red-300"><TrashIcon className="w-5 h-5"/></button>
+                                            <button onClick={() => onOpenEdit(unit)} className="text-blue-400 hover:text-blue-300"><EditIcon className="w-5 h-5"/></button>
+                                            <button onClick={() => onDelete(unit.id)} className="text-red-400 hover:text-red-300"><TrashIcon className="w-5 h-5"/></button>
                                         </div>
                                     </td>
                                 </tr>
@@ -820,7 +788,12 @@ const UnitNomenclatureModal = ({ isOpen, onClose, zones }) => {
 
 // --- From components/modals/PersonnelModal.tsx ---
 const PersonnelForm = ({ personnel, onSave, onCancel }) => {
-    const [formData, setFormData] = useState({ lp: '', rank: '', lastName: '', firstName: '' });
+    const [formData, setFormData] = useState({
+        lp: '',
+        rank: '',
+        lastName: '',
+        firstName: '',
+    });
 
     useEffect(() => {
         if (personnel) {
@@ -858,7 +831,6 @@ const PersonnelForm = ({ personnel, onSave, onCancel }) => {
         </form>
     );
 };
-
 const PersonnelModal = ({ isOpen, onClose, personnelList, onAdd, onUpdate, onDelete }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -958,102 +930,185 @@ const PersonnelModal = ({ isOpen, onClose, personnelList, onAdd, onUpdate, onDel
     );
 };
 
-// --- From components/UnitCard.tsx ---
-const StatusBadge = ({ status, unitId }) => {
-    const statusStyles = {
-        [UnitStatus.InService]: 'bg-green-500 text-white',
-        [UnitStatus.OutOfService]: 'bg-red-500 text-white',
-        [UnitStatus.Reserve]: 'bg-yellow-500 text-black',
-        [UnitStatus.OnLoan]: 'bg-blue-500 text-white',
-        [UnitStatus.Alternative]: 'bg-purple-500 text-white',
-    };
-    const statusDot = {
-        [UnitStatus.InService]: 'bg-green-400',
-        [UnitStatus.OutOfService]: 'bg-red-400',
-        [UnitStatus.Reserve]: 'bg-yellow-400',
-        [UnitStatus.OnLoan]: 'bg-blue-400',
-        [UnitStatus.Alternative]: 'bg-purple-400',
-    };
-    const hasBadge = status === UnitStatus.Reserve || status === UnitStatus.OutOfService || status === UnitStatus.OnLoan;
-    return (
-        <div className="flex items-center space-x-2">
-             <span className={`w-3 h-3 rounded-full ${statusDot[status]}`}></span>
-            <p className="font-bold text-lg text-gray-200">{unitId}</p>
-            {hasBadge && <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${statusStyles[status]}`}>{status}</span>}
-        </div>
-    );
-};
+// --- From components/modals/AssignOfficerModal.tsx ---
+const AssignOfficerModal = ({ unit, personnelList, isOpen, onClose, onSave }) => {
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedOfficer, setSelectedOfficer] = useState(null);
+    const [personnelCount, setPersonnelCount] = useState(unit?.personnelCount?.toString() || '');
 
-const UnitCard = ({ unit, onAssign, onUpdateStatus }) => {
-    const hasAssignment = unit.officerInCharge && unit.personnelCount;
+    useEffect(() => {
+        if(unit) {
+            setSelectedOfficer(unit.officerInCharge);
+            setPersonnelCount(unit.personnelCount?.toString() || '');
+            if(unit.officerInCharge) {
+                setSearchTerm(`${unit.officerInCharge.name.toUpperCase()}, ${unit.officerInCharge.rank}`);
+            } else {
+                setSearchTerm('');
+            }
+        }
+    }, [unit]);
+
+    const filteredPersonnel = useMemo(() => {
+        if (!searchTerm || (selectedOfficer && searchTerm === `${selectedOfficer.name.toUpperCase()}, ${selectedOfficer.rank}`)) return [];
+        return personnelList.filter(p =>
+            p.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            p.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            p.lp.includes(searchTerm)
+        ).slice(0, 5);
+    }, [searchTerm, personnelList, selectedOfficer]);
+
+    const handleSave = () => {
+        if (unit && selectedOfficer && personnelCount) {
+            onSave(unit.id, selectedOfficer, parseInt(personnelCount, 10));
+        }
+    };
+    
+    const handleSelectOfficer = (officer) => {
+        setSelectedOfficer(officer);
+        setSearchTerm(`${officer.lastName.toUpperCase()}, ${officer.firstName}`);
+    }
+
+    if(!unit) return null;
 
     return (
-        <div className="bg-gray-800 rounded-lg shadow-lg p-4 flex flex-col justify-between h-56 transition-all duration-300 hover:shadow-cyan-500/50 hover:ring-1 hover:ring-cyan-500">
-            <div>
-                <div className="flex justify-between items-start mb-2">
-                    <div>
-                        <StatusBadge status={unit.status} unitId={unit.id} />
-                        <p className={`text-sm font-medium ${unit.status === UnitStatus.OutOfService ? 'text-red-400' : 'text-red-500'}`}>{unit.type}</p>
-                    </div>
-                </div>
-                <div className="text-sm text-gray-400 h-16">
-                    {hasAssignment ? (
-                        <>
-                            <p className="font-semibold text-gray-300">OFICIAL A CARGO</p>
-                            <p className="text-yellow-400 font-bold">{unit.officerInCharge?.rank} {unit.officerInCharge?.name}</p>
-                            <p className="text-xs">LP: {unit.officerInCharge?.lp}</p>
-                            <div className="flex items-center mt-1">
-                                <UsersIcon className="w-4 h-4 mr-2" />
-                                <span className="font-bold">{unit.personnelCount}</span>
-                            </div>
-                        </>
-                    ) : (
-                        <div className="flex items-center justify-center h-full">
-                            <p>Sin Asignación</p>
-                        </div>
+        <Modal isOpen={isOpen} onClose={onClose} title="Asignar Oficial">
+            <div className="space-y-6">
+                <p className="font-semibold">Unidad: <span className="font-bold text-yellow-400">{unit.id}</span></p>
+
+                <div className="bg-gray-700 p-4 rounded-md">
+                    <label htmlFor="search-officer" className="block text-sm font-medium text-blue-300 mb-2">Oficial a Cargo</label>
+                    <p className="text-xs text-gray-400 mb-2">Buscar Oficial (por Nombre, Apellido o LP)</p>
+                    <input
+                        id="search-officer"
+                        type="text"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full bg-gray-800 border border-gray-600 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    {filteredPersonnel.length > 0 && (
+                        <ul className="mt-2 bg-gray-900 border border-gray-600 rounded-md">
+                            {filteredPersonnel.map(p => (
+                                <li
+                                    key={p.lp}
+                                    onClick={() => handleSelectOfficer(p)}
+                                    className="p-2 hover:bg-gray-700 cursor-pointer border-b border-gray-700 last:border-b-0"
+                                >
+                                    <p className="font-bold">{p.lastName.toUpperCase()}, {p.firstName}</p>
+                                    <p className="text-xs text-gray-400">{p.rank} - LP: {p.lp}</p>
+                                </li>
+                            ))}
+                        </ul>
                     )}
                 </div>
-            </div>
-            <div className="flex items-center justify-between mt-4">
-                <div className="flex space-x-2">
-                    <button className="p-2 bg-gray-700 rounded-md hover:bg-gray-600"><CogIcon className="w-4 h-4" /></button>
-                    <button className="p-2 bg-gray-700 rounded-md hover:bg-gray-600"><UserIcon className="w-4 h-4" /></button>
-                    <button onClick={onUpdateStatus} className="p-2 bg-gray-700 rounded-md hover:bg-gray-600"><PlusIcon className="w-4 h-4" /></button>
+
+                <div className="bg-gray-700 p-4 rounded-md">
+                    <label htmlFor="personnel-count" className="block text-sm font-medium text-blue-300 mb-2">Dotación de la Unidad</label>
+                    <p className="text-xs text-gray-400 mb-2">Cantidad Total de Personal</p>
+                    <input
+                        id="personnel-count"
+                        type="number"
+                        value={personnelCount}
+                        onChange={(e) => setPersonnelCount(e.target.value)}
+                        className="w-full bg-gray-800 border border-gray-600 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
                 </div>
-                {hasAssignment ? (
-                     <button onClick={onAssign} className="flex items-center px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700">
-                        <EditIcon className="w-4 h-4 mr-2" />
-                        Editar
-                    </button>
-                ) : (
-                    <button onClick={onAssign} className="flex items-center px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-700">
-                        <PlusIcon className="w-4 h-4 mr-2" />
-                        Asignar
-                    </button>
-                )}
+                
+                 <div className="bg-gray-700 p-4 rounded-md">
+                    <label htmlFor="add-personnel" className="block text-sm font-medium text-blue-300 mb-2">Agregar Personal a la Lista (Opcional)</label>
+                    <div className="flex">
+                        <input
+                            id="add-personnel"
+                            type="text"
+                            placeholder="Nombre y Apellido"
+                            className="w-full bg-gray-800 border border-gray-600 rounded-l-md p-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                        <button className="bg-blue-600 p-2 rounded-r-md hover:bg-blue-700">
+                            <PlusIcon className="w-6 h-6 text-white"/>
+                        </button>
+                    </div>
+                </div>
+
+                <footer className="flex justify-end space-x-4 pt-4">
+                    <button onClick={onClose} className="px-4 py-2 bg-gray-600 rounded-md hover:bg-gray-500">Cancelar</button>
+                    <button onClick={handleSave} disabled={!selectedOfficer || !personnelCount} className="px-4 py-2 bg-red-600 rounded-md hover:bg-red-700 disabled:bg-gray-500 disabled:cursor-not-allowed">Guardar Cambios</button>
+                </footer>
             </div>
-        </div>
+        </Modal>
     );
 };
 
-// --- From components/StationSection.tsx ---
-const StationSection = ({ station, onAssign, onUpdateStatus }) => {
+
+// --- From components/modals/UpdateStatusModal.tsx ---
+const UpdateStatusModal = ({ unit, isOpen, onClose, onSave }) => {
+    const [selectedStatus, setSelectedStatus] = useState(unit?.status);
+    const [reason, setReason] = useState(unit?.statusReason || '');
+
+    useEffect(() => {
+        if (unit) {
+            setSelectedStatus(unit.status);
+            setReason(unit.statusReason || '');
+        }
+    }, [unit]);
+
+    const statusOptions = [
+        { label: 'Integrando Fuerza o Servicio', value: UnitStatus.InServiceActive, color: 'violet-500' },
+        { label: 'Para Servicio', value: UnitStatus.InService, color: 'white' },
+        { label: 'Reserva', value: UnitStatus.Reserve, color: 'green-500' },
+        { label: 'Alternativa', value: UnitStatus.Alternative, color: 'yellow-500' },
+        { label: 'A Prestamo', value: UnitStatus.OnLoan, color: 'cyan-500' },
+        { label: 'Fuera de Servicio', value: UnitStatus.OutOfService, color: 'red-500' },
+    ];
+
+    const handleSave = () => {
+        onSave(unit.id, selectedStatus, reason);
+    };
+
+    if(!unit) return null;
+
     return (
-        <section className="mb-12">
-            <h3 className="text-lg font-semibold text-gray-400 mb-4 pb-2 border-b-2 border-gray-700">{station.name}</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {station.units.map(unit => (
-                    <UnitCard 
-                        key={unit.id} 
-                        unit={unit}
-                        onAssign={() => onAssign(unit)}
-                        onUpdateStatus={() => onUpdateStatus(unit)}
-                    />
-                ))}
+        <Modal isOpen={isOpen} onClose={onClose} title="Actualizar Estado">
+            <div className="space-y-6">
+                <p className="font-semibold">Unidad: <span className="font-bold text-yellow-400">{unit.id}</span></p>
+
+                <div>
+                    <label className="block text-sm font-medium text-blue-300 mb-2">Seleccionar Nuevo Estado</label>
+                    <div className="space-y-2">
+                        {statusOptions.map(option => (
+                            <button
+                                key={option.value + option.label}
+                                onClick={() => setSelectedStatus(option.value)}
+                                className={`w-full text-left p-3 rounded-md flex items-center transition-all duration-200 ${selectedStatus === option.value ? `ring-2 ring-offset-2 ring-offset-gray-800 ring-${option.color}` : 'bg-gray-700 hover:bg-gray-600'}`}
+                            >
+                                <span className={`w-4 h-4 rounded-full mr-3 bg-${option.color}`}></span>
+                                {option.label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {selectedStatus === UnitStatus.OutOfService && (
+                     <div className="bg-gray-700 p-4 rounded-md">
+                        <label htmlFor="reason" className="block text-sm font-medium text-blue-300 mb-2">Motivo (Requerido para F/S)</label>
+                        <input
+                            id="reason"
+                            type="text"
+                            value={reason}
+                            onChange={(e) => setReason(e.target.value)}
+                            placeholder="Ej. Falta de personal, Problema mecánico"
+                            className="w-full bg-gray-800 border border-gray-600 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                    </div>
+                )}
+                
+                <footer className="flex justify-end space-x-4 pt-4">
+                    <button onClick={onClose} className="px-4 py-2 bg-gray-600 rounded-md hover:bg-gray-500">Cancelar</button>
+                    <button onClick={handleSave} className="px-4 py-2 bg-red-600 rounded-md hover:bg-red-700">Guardar Cambios</button>
+                </footer>
             </div>
-        </section>
+        </Modal>
     );
 };
+
 
 // --- From components/Header.tsx ---
 const Header = ({ onOpenModal }) => {
@@ -1102,75 +1157,281 @@ const Header = ({ onOpenModal }) => {
     );
 };
 
+
+// --- From components/UnitCard.tsx ---
+const StatusBadge = ({ status, unitId }) => {
+    const statusText = {
+        [UnitStatus.InService]: 'Para Servicio',
+        [UnitStatus.InServiceActive]: 'Integrando Fuerza',
+        [UnitStatus.OutOfService]: 'Fuera de Servicio',
+        [UnitStatus.Reserve]: 'Reserva',
+        [UnitStatus.OnLoan]: 'A Prestamo',
+        [UnitStatus.Alternative]: 'Alternativa',
+    };
+
+    const statusStyles = {
+        [UnitStatus.InServiceActive]: 'bg-violet-500 text-white',
+        [UnitStatus.OutOfService]: 'bg-red-500 text-white',
+        [UnitStatus.Reserve]: 'bg-green-500 text-white',
+        [UnitStatus.OnLoan]: 'bg-cyan-500 text-white',
+        [UnitStatus.Alternative]: 'bg-yellow-500 text-black',
+    };
+
+    const statusDot = {
+        [UnitStatus.InService]: 'bg-white',
+        [UnitStatus.InServiceActive]: 'bg-violet-500',
+        [UnitStatus.OutOfService]: 'bg-red-500',
+        [UnitStatus.Reserve]: 'bg-green-500',
+        [UnitStatus.OnLoan]: 'bg-cyan-500',
+        [UnitStatus.Alternative]: 'bg-yellow-500',
+    };
+
+    const hasBadge = status !== UnitStatus.InService;
+
+    return (
+        <div className="flex items-center space-x-2">
+            <span className={`w-3 h-3 rounded-full ${statusDot[status]}`}></span>
+            <p className="font-bold text-lg text-gray-200">{unitId}</p>
+            {hasBadge && <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${statusStyles[status]}`}>{statusText[status]}</span>}
+        </div>
+    );
+};
+const UnitCard = ({ unit, onAssign, onUpdateStatus }) => {
+    const hasAssignment = unit.officerInCharge && unit.personnelCount;
+
+    return (
+        <div className="bg-gray-800 rounded-lg shadow-lg p-4 flex flex-col justify-between h-56 transition-all duration-300 hover:shadow-cyan-500/50 hover:ring-1 hover:ring-cyan-500">
+            <div>
+                <div className="flex justify-between items-start mb-2">
+                    <div>
+                        <StatusBadge status={unit.status} unitId={unit.id} />
+                        <p className={`text-sm font-medium ${unit.status === UnitStatus.OutOfService ? 'text-red-400' : 'text-red-500'}`}>{unit.type}</p>
+                    </div>
+                </div>
+
+                <div className="text-sm text-gray-400 h-16">
+                    {unit.status === UnitStatus.OutOfService ? (
+                        <div className="flex flex-col justify-start h-full pt-1">
+                            <p className="font-semibold text-red-400 uppercase">Motivo F/S:</p>
+                            <p className="text-gray-200 italic truncate" title={unit.statusReason || ''}>{unit.statusReason || 'No especificado'}</p>
+                        </div>
+                    ) : hasAssignment ? (
+                        <>
+                            <p className="font-semibold text-gray-300">OFICIAL A CARGO</p>
+                            <p className="text-yellow-400 font-bold">{unit.officerInCharge?.rank} {unit.officerInCharge?.name}</p>
+                            <p className="text-xs">LP: {unit.officerInCharge?.lp}</p>
+                            <div className="flex items-center mt-1">
+                                <UsersIcon className="w-4 h-4 mr-2" />
+                                <span className="font-bold">{unit.personnelCount}</span>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="flex items-center justify-center h-full">
+                            <p>Sin Asignación</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            <div className="flex items-center justify-between mt-4">
+                <div className="flex space-x-2">
+                    <button className="p-2 bg-gray-700 rounded-md hover:bg-gray-600"><CogIcon className="w-4 h-4" /></button>
+                    <button className="p-2 bg-gray-700 rounded-md hover:bg-gray-600"><UserIcon className="w-4 h-4" /></button>
+                    <button onClick={onUpdateStatus} className="p-2 bg-gray-700 rounded-md hover:bg-gray-600"><PlusIcon className="w-4 h-4" /></button>
+                </div>
+                {hasAssignment ? (
+                     <button onClick={onAssign} className="flex items-center px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700">
+                        <EditIcon className="w-4 h-4 mr-2" />
+                        Editar
+                    </button>
+                ) : (
+                    <button onClick={onAssign} className="flex items-center px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-700">
+                        <PlusIcon className="w-4 h-4 mr-2" />
+                        Asignar
+                    </button>
+                )}
+            </div>
+        </div>
+    );
+};
+
+
+// --- From components/StationSection.tsx ---
+const StationSection = ({ station, onAssign, onUpdateStatus }) => {
+    return (
+        <section className="mb-12">
+            <h3 className="text-lg font-semibold text-gray-400 mb-4 pb-2 border-b-2 border-gray-700">{station.name}</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {station.units.map(unit => (
+                    <UnitCard 
+                        key={unit.id} 
+                        unit={unit}
+                        onAssign={() => onAssign(unit)}
+                        onUpdateStatus={() => onUpdateStatus(unit)}
+                    />
+                ))}
+            </div>
+        </section>
+    );
+};
+
 // --- From App.tsx ---
 const App = () => {
     const [zones, setZones] = useState(ZONES_DATA);
     const [personnel, setPersonnel] = useState(PERSONNEL_DATA);
     const [activeModal, setActiveModal] = useState(null);
     const [selectedUnit, setSelectedUnit] = useState(null);
+    const [unitToManage, setUnitToManage] = useState(null); // For Add/Edit Unit Modal
 
-    const handleOpenModal = useCallback((modal, unit) => {
-        if (unit) {
-            setSelectedUnit(unit);
-        }
-        setActiveModal(modal);
-    }, []);
+    const handleOpenModal = (modalType, unit = null) => {
+        setSelectedUnit(unit);
+        setActiveModal(modalType);
+    };
 
-    const handleCloseModal = useCallback(() => {
+    const handleCloseModal = () => {
         setActiveModal(null);
         setSelectedUnit(null);
-    }, []);
+    };
 
-    const updateUnitData = (unitId, updatedData) => {
+    const handleAssignOfficer = (unitId, officer, personnelCount) => {
         const newZones = zones.map(zone => ({
             ...zone,
             stations: zone.stations.map(station => ({
                 ...station,
                 units: station.units.map(unit =>
-                    unit.id === unitId ? { ...unit, ...updatedData } : unit
+                    unit.id === unitId
+                        ? { ...unit, officerInCharge: { rank: officer.rank, name: officer.lastName, lp: officer.lp }, personnelCount }
+                        : unit
                 ),
             })),
         }));
         setZones(newZones);
+        handleCloseModal();
     };
 
-    const handleAssignOfficer = useCallback((unitId, officer, personnelCount) => {
-        updateUnitData(unitId, {
-            officerInCharge: {
-                rank: officer.rank,
-                name: `${officer.lastName}, ${officer.firstName}`,
-                lp: officer.lp
-            },
-            personnelCount: personnelCount,
-        });
+    const handleUpdateStatus = (unitId, status, reason) => {
+        const newZones = zones.map(zone => ({
+            ...zone,
+            stations: zone.stations.map(station => ({
+                ...station,
+                units: station.units.map(unit =>
+                    unit.id === unitId
+                        ? { ...unit, status, statusReason: reason }
+                        : unit
+                ),
+            })),
+        }));
+        setZones(newZones);
         handleCloseModal();
-    }, [zones, handleCloseModal]);
+    };
 
-    const handleUpdateStatus = useCallback((unitId, status, reason) => {
-        updateUnitData(unitId, { status, statusReason: reason });
-        handleCloseModal();
-    }, [zones, handleCloseModal]);
-
-    const handleAddPersonnel = useCallback((newPersonnel) => {
+    const handleAddPersonnel = (newPersonnel) => {
+        if (personnel.some(p => p.lp === newPersonnel.lp)) {
+            alert("Error: El LP ya existe.");
+            return;
+        }
         setPersonnel(prev => [...prev, newPersonnel]);
-    }, []);
+    };
 
-    const handleUpdatePersonnel = useCallback((updatedPersonnel) => {
+    const handleUpdatePersonnel = (updatedPersonnel) => {
         setPersonnel(prev => prev.map(p => p.lp === updatedPersonnel.lp ? updatedPersonnel : p));
-    }, []);
+    };
 
-    const handleDeletePersonnel = useCallback((lp) => {
+    const handleDeletePersonnel = (lp) => {
         setPersonnel(prev => prev.filter(p => p.lp !== lp));
-    }, []);
+    };
+
+    // --- New Handlers for Unit Management ---
+    const handleOpenAddUnitModal = () => {
+        handleCloseModal(); // Close nomenclature if open
+        setUnitToManage({ mode: 'add', unit: null });
+    };
+
+    const handleOpenEditUnitModal = (unitToEdit) => {
+        handleCloseModal(); // Close nomenclature if open
+        setUnitToManage({ mode: 'edit', unit: unitToEdit });
+    };
+
+
+    const handleDeleteUnit = (unitIdToDelete) => {
+        if (!window.confirm(`¿Está seguro que desea eliminar la unidad ${unitIdToDelete}?`)) {
+            return;
+        }
+        const newZones = JSON.parse(JSON.stringify(zones));
+        let unitFoundAndDeleted = false;
+        for (const zone of newZones) {
+            for (const station of zone.stations) {
+                const unitIndex = station.units.findIndex(u => u.id === unitIdToDelete);
+                if (unitIndex !== -1) {
+                    station.units.splice(unitIndex, 1);
+                    unitFoundAndDeleted = true;
+                    break;
+                }
+            }
+            if (unitFoundAndDeleted) break;
+        }
+        setZones(newZones);
+    };
+
+
+    const handleSaveUnit = (savedUnitData, originalUnitData) => {
+        const newZones = JSON.parse(JSON.stringify(zones)); // Deep copy to ensure immutability
+
+        const newUnit = {
+            ...originalUnitData, // Carry over existing data like officer, status etc.
+            id: savedUnitData.id,
+            type: savedUnitData.type,
+            internalNumber: savedUnitData.internalNumber,
+            // Ensure these fields exist, defaulting if they don't
+            status: originalUnitData?.status || UnitStatus.InService,
+            officerInCharge: originalUnitData?.officerInCharge || null,
+            personnelCount: originalUnitData?.personnelCount || null,
+        };
+
+        // --- Handle Edit Mode (including moving stations) ---
+        if (unitToManage.mode === 'edit' && originalUnitData) {
+            // 1. Remove the original unit from its old position
+            let unitRemoved = false;
+            for (const zone of newZones) {
+                for (const station of zone.stations) {
+                    const unitIndex = station.units.findIndex(u => u.id === originalUnitData.id);
+                    if (unitIndex !== -1) {
+                        station.units.splice(unitIndex, 1);
+                        unitRemoved = true;
+                        break;
+                    }
+                }
+                if (unitRemoved) break;
+            }
+        }
+
+        // --- Add the new/updated unit to its correct new station ---
+        let unitAdded = false;
+        for (const zone of newZones) {
+            if (zone.id === savedUnitData.zoneId) {
+                for (const station of zone.stations) {
+                    if (station.id === savedUnitData.stationId) {
+                        station.units.push(newUnit);
+                        unitAdded = true;
+                        break;
+                    }
+                }
+            }
+            if (unitAdded) break;
+        }
+
+        setZones(newZones);
+        setUnitToManage(null); // Close the modal
+    };
 
 
     return (
-        <div className="bg-gray-900 min-h-screen text-gray-200 font-sans">
-            <Header onOpenModal={handleOpenModal} />
-            <main className="p-4 sm:p-6 lg:p-8">
+        <div className="min-h-screen bg-gray-900 text-gray-300">
+            <Header onOpenModal={(modalType) => handleOpenModal(modalType)} />
+            <main className="p-8">
                 {zones.map(zone => (
-                    <div key={zone.id}>
-                        <h2 className="text-2xl font-bold text-red-500 mb-4 tracking-wider uppercase">{zone.name}</h2>
+                    <div key={zone.id} className="mb-8">
+                        <h2 className="text-2xl font-bold text-red-500 mb-6 uppercase tracking-wide">{zone.name}</h2>
                         {zone.stations.map(station => (
                             <StationSection
                                 key={station.id}
@@ -1187,32 +1448,32 @@ const App = () => {
                 <AssignOfficerModal
                     unit={selectedUnit}
                     personnelList={personnel}
-                    isOpen={true}
+                    isOpen={activeModal === 'assignOfficer'}
                     onClose={handleCloseModal}
                     onSave={handleAssignOfficer}
                 />
             )}
-            
             {selectedUnit && activeModal === 'updateStatus' && (
                 <UpdateStatusModal
                     unit={selectedUnit}
-                    isOpen={true}
+                    isOpen={activeModal === 'updateStatus'}
                     onClose={handleCloseModal}
                     onSave={handleUpdateStatus}
                 />
             )}
-
-            {activeModal === 'nomenclature' && (
+             {activeModal === 'nomenclature' && (
                 <UnitNomenclatureModal
-                    isOpen={true}
+                    isOpen={activeModal === 'nomenclature'}
                     onClose={handleCloseModal}
                     zones={zones}
+                    onOpenAdd={handleOpenAddUnitModal}
+                    onOpenEdit={handleOpenEditUnitModal}
+                    onDelete={handleDeleteUnit}
                 />
             )}
-
             {activeModal === 'personnel' && (
-                 <PersonnelModal
-                    isOpen={true}
+                <PersonnelModal
+                    isOpen={activeModal === 'personnel'}
                     onClose={handleCloseModal}
                     personnelList={personnel}
                     onAdd={handleAddPersonnel}
@@ -1220,23 +1481,23 @@ const App = () => {
                     onDelete={handleDeletePersonnel}
                 />
             )}
+            
+            {unitToManage && (
+              <AddEditUnitModal
+                isOpen={!!unitToManage}
+                onClose={() => setUnitToManage(null)}
+                onSave={handleSaveUnit}
+                unitData={unitToManage}
+                allZones={zones}
+              />
+            )}
         </div>
     );
 };
 
-
-// --- From index.tsx (entry point) ---
-const rootElement = document.getElementById('root');
-if (!rootElement) {
-  throw new Error("Could not find root element to mount to");
-}
-
-const root = ReactDOM.createRoot(rootElement);
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+// --- Render the App ---
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
 
     </script>
   </body>
