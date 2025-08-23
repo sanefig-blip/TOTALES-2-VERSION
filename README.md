@@ -35,9 +35,9 @@ El proyecto está organizado en los siguientes directorios principales:
 ├── README.md           # Este archivo
 ├── .gitignore          # Archivos a ser ignorados por Git
 └── src/                # Todo el código fuente
-    ├── App.tsx             # Componente principal de la aplicación
-    ├── index.tsx           # Renderizado de la raíz de React
-    ├── types.ts            # Definiciones de tipos de TypeScript
+    ├── App.js             # Componente principal de la aplicación
+    ├── index.js           # Renderizado de la raíz de React
+    ├── types.js            # Definiciones de tipos de TypeScript
     ├── components/         # Componentes de React reutilizables
     └── data/               # Datos de prueba para la aplicación
 ```
