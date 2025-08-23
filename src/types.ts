@@ -1,35 +1,10 @@
 
 export enum UnitStatus {
-    InService = 'In Service',
-    OutOfService = 'Out of Service',
-    Reserve = 'Reserve',
-    OnLoan = 'On Loan',
-    Alternative = 'Alternative',
-}
-
-export interface Unit {
-    id: string;
-    type: string;
-    status: UnitStatus;
-    statusReason?: string;
-    officerInCharge: {
-        rank: string;
-        name: string;
-        lp: string;
-    } | null;
-    personnelCount: number | null;
-}
-
-export interface Station {
-    id: string;
-    name: string;
-    units: Unit[];
-}
-
-export interface Zone {
-    id: string;
-    name: string;
-    stations: Station[];
+    InService = 'En Servicio',
+    OutOfService = 'Fuera de Servicio',
+    Reserve = 'Reserva',
+    OnLoan = 'A Préstamo',
+    Alternative = 'Alternativa',
 }
 
 export interface Personnel {
@@ -39,4 +14,22 @@ export interface Personnel {
     firstName: string;
 }
 
-export type ModalType = 'assignOfficer' | 'updateStatus' | 'nomenclature' | 'personnel' | 'internos' | 'registros' | null;
+export interface Unit {
+    id: string;
+    type: string;
+    status: UnitStatus;
+    officerInCharge: Personnel | null;
+    personnelCount: number | null;
+}
+
+export interface Station {
+    name: string;
+    units: Unit[];
+}
+
+export interface Zone {
+    name: string;
+    stations: Station[];
+}
+
+export type ModalType = 'nomenclature' | 'personnel';

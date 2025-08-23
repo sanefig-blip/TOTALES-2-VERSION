@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { Unit } from '../types.ts';
 import { UnitStatus } from '../types.ts';
@@ -31,7 +32,7 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status, unitId }) => {
         [UnitStatus.Alternative]: 'bg-purple-400',
     }
 
-    const hasBadge = status === UnitStatus.Reserve || status === UnitStatus.OutOfService || status === UnitStatus.OnLoan;
+    const hasBadge = status === UnitStatus.Reserve || status === UnitStatus.OutOfService || status === UnitStatus.OnLoan || status === UnitStatus.Alternative;
 
     return (
         <div className="flex items-center space-x-2">
@@ -59,7 +60,7 @@ export const UnitCard: React.FC<UnitCardProps> = ({ unit, onAssign, onUpdateStat
                     {hasAssignment ? (
                         <>
                             <p className="font-semibold text-gray-300">OFICIAL A CARGO</p>
-                            <p className="text-yellow-400 font-bold">{unit.officerInCharge?.rank} {unit.officerInCharge?.name}</p>
+                            <p className="text-yellow-400 font-bold">{unit.officerInCharge?.rank} {unit.officerInCharge?.lastName}, {unit.officerInCharge?.firstName}</p>
                             <p className="text-xs">LP: {unit.officerInCharge?.lp}</p>
                             <div className="flex items-center mt-1">
                                 <UsersIcon className="w-4 h-4 mr-2" />
