@@ -1,7 +1,6 @@
-
 import React from 'react';
-import type { Station, Unit } from '../types.ts';
-import { UnitCard } from './UnitCard.tsx';
+import type { Station, Unit } from '../types';
+import { UnitCard } from './UnitCard';
 
 interface StationSectionProps {
     station: Station;

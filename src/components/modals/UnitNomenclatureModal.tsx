@@ -1,8 +1,7 @@
-
 import React, { useState, useMemo } from 'react';
-import type { Zone, Unit } from '../../types.ts';
-import { Modal } from './Modal.tsx';
-import { SearchIcon, PlusIcon, EditIcon, TrashIcon } from '../icons/Icons.tsx';
+import type { Zone, Unit } from '../../types';
+import { Modal } from './Modal';
+import { SearchIcon, PlusIcon, EditIcon, TrashIcon } from '../icons/Icons';
 
 interface UnitNomenclatureModalProps {
     isOpen: boolean;
@@ -10,10 +9,10 @@ interface UnitNomenclatureModalProps {
     zones: Zone[];
 }
 
-interface FlatUnit extends Unit {
+type FlatUnit = Unit & {
     stationName: string;
     zoneName: string;
-}
+};
 
 export const UnitNomenclatureModal: React.FC<UnitNomenclatureModalProps> = ({ isOpen, onClose, zones }) => {
     const [searchTerm, setSearchTerm] = useState('');

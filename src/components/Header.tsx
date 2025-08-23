@@ -1,7 +1,6 @@
-
 import React from 'react';
-import type { ModalType } from '../types.ts';
-import { UserIcon, FileTextIcon, ListIcon, BookIcon, LogOutIcon, ArrowRightIcon } from './icons/Icons.tsx';
+import type { ModalType } from '../types';
+import { UserIcon, FileTextIcon, ListIcon, BookIcon, LogOutIcon, ArrowRightIcon } from './icons/Icons';
 
 interface HeaderProps {
     onOpenModal: (modal: ModalType) => void;

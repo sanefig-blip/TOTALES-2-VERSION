@@ -1,8 +1,7 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
-import type { Personnel } from '../../types.ts';
-import { Modal } from './Modal.tsx';
-import { SearchIcon, PlusIcon, EditIcon, TrashIcon, XIcon } from '../icons/Icons.tsx';
+import type { Personnel } from '../../types';
+import { Modal } from './Modal';
+import { SearchIcon, PlusIcon, EditIcon, TrashIcon, XIcon } from '../icons/Icons';
 
 interface PersonnelModalProps {
     isOpen: boolean;
