@@ -5,12 +5,13 @@ import { StationSection } from './components/StationSection.tsx';
 import { AssignOfficerModal } from './components/modals/AssignOfficerModal.tsx';
 import { UpdateStatusModal } from './components/modals/UpdateStatusModal.tsx';
 import { UnitNomenclatureModal } from './components/modals/UnitNomenclatureModal.tsx';
+import { PersonnelModal } from './components/modals/PersonnelModal.tsx';
 import type { Zone, Unit, UnitStatus, Personnel, ModalType } from './types.ts';
 import { ZONES_DATA, PERSONNEL_DATA } from './data/mockData.ts';
 
 const App: React.FC = () => {
     const [zones, setZones] = useState<Zone[]>(ZONES_DATA);
-    const [personnel] = useState<Personnel[]>(PERSONNEL_DATA);
+    const [personnel, setPersonnel] = useState<Personnel[]>(PERSONNEL_DATA);
     const [activeModal, setActiveModal] = useState<ModalType>(null);
     const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
 
@@ -56,6 +57,19 @@ const App: React.FC = () => {
         handleCloseModal();
     }, [zones, handleCloseModal]);
 
+    const handleAddPersonnel = useCallback((newPersonnel: Personnel) => {
+        setPersonnel(prev => [...prev, newPersonnel]);
+    }, []);
+
+    const handleUpdatePersonnel = useCallback((updatedPersonnel: Personnel) => {
+        setPersonnel(prev => prev.map(p => p.lp === updatedPersonnel.lp ? updatedPersonnel : p));
+    }, []);
+
+    const handleDeletePersonnel = useCallback((lp: string) => {
+        setPersonnel(prev => prev.filter(p => p.lp !== lp));
+    }, []);
+
+
     return (
         <div className="bg-gray-900 min-h-screen text-gray-200 font-sans">
             <Header onOpenModal={handleOpenModal} />
@@ -99,6 +113,17 @@ const App: React.FC = () => {
                     isOpen={true}
                     onClose={handleCloseModal}
                     zones={zones}
+                />
+            )}
+
+            {activeModal === 'personnel' && (
+                 <PersonnelModal
+                    isOpen={true}
+                    onClose={handleCloseModal}
+                    personnelList={personnel}
+                    onAdd={handleAddPersonnel}
+                    onUpdate={handleUpdatePersonnel}
+                    onDelete={handleDeletePersonnel}
                 />
             )}
         </div>

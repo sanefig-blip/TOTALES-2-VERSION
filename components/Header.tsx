@@ -18,7 +18,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenModal }) => {
                             <ListIcon className="w-4 h-4 mr-2" />
                             Nomenclador
                         </button>
-                        <button className="flex items-center px-3 py-2 text-sm font-medium text-gray-300 bg-gray-700 rounded-md hover:bg-gray-600">
+                        <button onClick={() => onOpenModal('personnel')} className="flex items-center px-3 py-2 text-sm font-medium text-gray-300 bg-gray-700 rounded-md hover:bg-gray-600">
                             <UserIcon className="w-4 h-4 mr-2" />
                             Personal
                         </button>
